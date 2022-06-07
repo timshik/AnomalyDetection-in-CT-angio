@@ -12,21 +12,22 @@ def transform_img(image, thr):
     return image
 
 
-def data_prep(path, suffix='/'):
-    list_post_treat = os.listdir(path)
+def data_prep(path):
+    scans_path = os.listdir(path)
     scans = []
-    for filename_post in sorted(list_post_treat):
-        images = []
-        for group in [0, 1]:
-            image_name = sorted(os.listdir(path + suffix + filename_post))[group]
-            image_path = path + suffix + filename_post + suffix + image_name
-            image = cv2.imread(image_path, 0)
-            image = transform_img(image, 100)
+    for scan in sorted(scans_path):
+        path_to_scan = f'{path}/{scan}/SAG'
+        try:
+            path_to_scan += f'/{os.listdir(path_to_scan)[0]}'
+            image = cv2.imread(path_to_scan, 0)
+            # image = transform_img(image, 100)  # not sure if needed
             image = cv2.resize(image, (128, 128))  # .astype(float)/255.0-0.5
             # adding dimension because the model expects 3D input
             image = image.reshape(1, image.shape[0], image.shape[1])
-            images.append(image)
-        scans.append([filename_post, images])
+            scans.append([scan, image])
+        except:
+            continue
+
     return np.asarray(scans)
 
 
@@ -39,7 +40,7 @@ class GroupData:
     def my_train_test_split(self, split_rate, constant_split=None):
         self.train, self.val = train_test_split(self.data, test_size=split_rate)
 
-    def get_train_val_labels(self):
+    def get_train_val_datasets(self):
         return self.train, self.val
 
 
@@ -54,14 +55,14 @@ class TwoGroupDataset(Dataset):
         subject = self.data[item][0]
         data = self.data[item][1]
         x = data[0]
-        y = data[1]
-        return subject, x, y
+
+        return subject, x
 
 
 def get_train_test_loaders(path, split_rate, batch_size):
     my_data = GroupData(path)
     my_data.my_train_test_split(split_rate)
-    train, val = my_data.get_train_val_labels()
+    train, val = my_data.get_train_val_datasets()
     train_set = TwoGroupDataset(train)
     val_set = TwoGroupDataset(val)
     train_data_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
