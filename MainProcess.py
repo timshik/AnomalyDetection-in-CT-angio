@@ -18,6 +18,7 @@ def save_batch(dir, orig, noisy, created, subject):
         cv2.imwrite(f'{dir}/{subject[j]}/orig_noisy.png', un_normalize_image(noisy[j][0]))
         cv2.imwrite(f'{dir}/{subject[j]}/orig.png', un_normalize_image(orig[j][0]))
         cv2.imwrite(f'{dir}/{subject[j]}/created.png', un_normalize_image(created[j][0]))
+        cv2.imwrite(f'{dir}/{subject[j]}/subtracted.png', np.abs(un_normalize_image(created[j][0])-un_normalize_image(orig[j][0])))
 
 
 def train(model, train_loader, val_loader, loss, optimizer, epochs):
@@ -79,8 +80,8 @@ def evaluate(model, loader, train_or_test):
         save_batch(dir, img, img_noisy, out, subject)
 
 
-def main_process(model, path_to_data, loss, optimizer, epochs, path_to_weights, batch_size, train_test_rate=10):
-    train_loader, val_loader = get_train_test_loaders(path_to_data, train_test_rate, batch_size)
+def main_process(model, path_to_data, loss, optimizer, epochs, path_to_weights, batch_size, train_test_rate, mask, rate):
+    train_loader, val_loader = get_train_test_loaders(path_to_data, train_test_rate, batch_size, mask, rate)
     tr_losses, val_losses, = train(model, train_loader, val_loader, loss, optimizer, epochs)
     output_learning_graph(tr_losses, val_losses)
     makedir(path_to_weights)

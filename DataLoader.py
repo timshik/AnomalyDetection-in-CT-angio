@@ -41,9 +41,12 @@ class GroupData:
     def get_train_val_datasets(self):
         return self.train, self.val
 
+    def get_dataset(self):
+        return self.data
+
 
 # we first subtract the image from 255 because we want the mask be in shape of a white squares
-def mask_image(img, rate=0.2):
+def mask_image(img, rate):
     img = 255-img
     size = len(img)*len(img[0])
     array = np.ones(size)
@@ -54,8 +57,10 @@ def mask_image(img, rate=0.2):
 
 
 class TwoGroupDataset(Dataset):
-    def __init__(self, data):
+    def __init__(self, data, mask, rate):
         self.data = data
+        self.mask = mask
+        self.rate = rate
 
     def __len__(self):
         return len(self.data)
@@ -63,19 +68,29 @@ class TwoGroupDataset(Dataset):
     def __getitem__(self, item):
         subject = self.data[item][0]
         data = self.data[item][1]
-        masked_image = mask_image(data)
-        masked_image = masked_image.reshape(1, masked_image.shape[0], masked_image.shape[1])
         orig_image = data.reshape(1, data.shape[0], data.shape[1])
+        if self.mask:
+            masked_image = mask_image(data, self.rate)
+            masked_image = masked_image.reshape(1, masked_image.shape[0], masked_image.shape[1])
+        else:
+            masked_image = orig_image
         return subject, orig_image, masked_image
 
 
-def get_train_test_loaders(path, split_rate, batch_size):
+def get_train_test_loaders(path, split_rate, batch_size, mask, rate):
     my_data = GroupData(path)
     my_data.my_train_test_split(split_rate)
     train, val = my_data.get_train_val_datasets()
-    train_set = TwoGroupDataset(train)
-    val_set = TwoGroupDataset(val)
+    train_set = TwoGroupDataset(train, mask, rate)
+    val_set = TwoGroupDataset(val, mask, rate)
     train_data_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
     val_data_loader = DataLoader(val_set, batch_size=batch_size, shuffle=True)
     return train_data_loader, val_data_loader
 
+
+def get_all_data_dataloader(path,  mask, rate):
+    my_data = GroupData(path)
+    data = my_data.get_dataset()
+    data_set = TwoGroupDataset(data, mask, rate)
+    data_loader = DataLoader(data_set, shuffle=True)
+    return data_loader

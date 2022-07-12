@@ -1,0 +1,25 @@
+we took healthy scans, mask them with rate (0<rate<1) and then tried to reconstruct them
+
+for rate = 0.2 the reconstruction is almost perfect
+when the trained model were given with healthy scans without mask, he again reconstructed them almost perfectly (left the scan as it is, see in 'test' folder)
+
+further thoughts
+
+there are few approaches we can take now
+
+1) we can give the model scans with distal clot and hope that he will see the clot as mask, therefore he will reconstruct the scan without the clot
+then we can take the difference between the original and the created and find the clot.
+
+2) we can give the model the scans with distal clot, only this time we will mask it,
+hopefully the model won't reconstruct the clot (its an anomaly that he not suppose to be aware of).
+here we can play with the rate variable, the bigger it is the more blank pixels will appear in the scan,
+and so the model will have more pixels to reconstruct which might harden the task to reconstruct the clot ( we dont want the model to succeed reconstruct the clot)
+
+3) we can try to apply some simpler anomaly detection algorithm on the latent variable (the result of the encoder ) that we got
+hoping that the model encoded enough information on the scan in that variable to differentiate normal scans from anomaly scans (distal clot)
+again here we can play with the mask rate, the bigger it is the model will have to understand the architecture of the scan better,
+and hopefully create better representation for the scans.
+
+
+### we can use other scans (or maybe combining ) for that task ( like parenchyma ) so the clot will be bold, and it will be hard for the model to reconstruct the right color
+### for now we are working with downscaled version of the scans, because its time consuming working with the 1024X1024 version.
