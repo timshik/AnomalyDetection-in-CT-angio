@@ -1,28 +1,34 @@
 from DataLoader import get_train_test_loaders
 import torch
-
+from Unet import UNet
+from MainProcess import *
+from torch import nn
+from Lookahead import *
 batch_size = 16
-epochs = 300
+epochs = 200
 path_to_data = "tim's_data"
 path_to_weights = 'weights'
-train_test_rate = 10
+train_test_rate = 0.3
 lr = 1e-2
+# todo show every epoch few examples of the reconstruction
+# todo try to leave the dimensions as they are (1024X1024)
+# todo enlarge the mask rate
+# todo try to reconstruct normal and distal clots and see the error of reconstruction
 
+# if the reconstruction will be perfect we can try to reconstruct distal clot scan and then subtract it from the original scan, the clot shouldnt be in the reconstructed image.
 # model
-# model = Wae()
+model = UNet()
 # loss
-# loss = nn.MSELoss()  # nn.L1Loss()  # nn.MSELoss()
+loss = nn.MSELoss(reduction='sum')  # nn.L1Loss()
 # optimizer
-# optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-2, betas=(0.8, 0.980), eps=1e-08)  # the parameters are default for now
-# optimizer = Lookahead(optimizer)
-
-# if train = 1 we train AE( group 0 - first AE, group 1 - second AE)
-# else we evaluate on final AE
+optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-2, betas=(0.8, 0.980), eps=1e-08)  # the parameters are default for now
+optimizer = Lookahead(optimizer)
 
 
 def main():
-    train_loader, test_loader = get_train_test_loaders(path_to_data, train_test_rate, batch_size)
+    main_process(model, path_to_data, loss, optimizer, epochs, path_to_weights, batch_size, train_test_rate)
 
 
 if __name__ == '__main__':
     main()
+

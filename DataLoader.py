@@ -1,14 +1,14 @@
-import cv2
 import os
 import numpy as np
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
+import cv2
 
 
 def transform_img(image, thr):
-    image[image > thr] = 255
-    image[image <= thr] = 0
+    # image[image > thr] = 255
+    # image[image <= thr] = 0
     return image
 
 
@@ -20,10 +20,8 @@ def data_prep(path):
         try:
             path_to_scan += f'/{os.listdir(path_to_scan)[0]}'
             image = cv2.imread(path_to_scan, 0)
-            # image = transform_img(image, 100)  # not sure if needed
-            image = cv2.resize(image, (128, 128))  # .astype(float)/255.0-0.5
-            # adding dimension because the model expects 3D input
-            image = image.reshape(1, image.shape[0], image.shape[1])
+            image = transform_img(image, 130)  # not sure if needed
+            image = cv2.resize(image, (128, 128))  #.astype(float)/255.0-0.5
             scans.append([scan, image])
         except:
             continue
@@ -44,6 +42,17 @@ class GroupData:
         return self.train, self.val
 
 
+# we first subtract the image from 255 because we want the mask be in shape of a white squares
+def mask_image(img, rate=0.2):
+    img = 255-img
+    size = len(img)*len(img[0])
+    array = np.ones(size)
+    indices = np.random.choice(np.arange(size), int(size*rate), replace=False)
+    array[indices] = 0
+    mask = np.reshape(array, (len(img), len(img[0])))
+    return 255 - img*mask.astype(int)
+
+
 class TwoGroupDataset(Dataset):
     def __init__(self, data):
         self.data = data
@@ -54,9 +63,10 @@ class TwoGroupDataset(Dataset):
     def __getitem__(self, item):
         subject = self.data[item][0]
         data = self.data[item][1]
-        x = data[0]
-
-        return subject, x
+        masked_image = mask_image(data)
+        masked_image = masked_image.reshape(1, masked_image.shape[0], masked_image.shape[1])
+        orig_image = data.reshape(1, data.shape[0], data.shape[1])
+        return subject, orig_image, masked_image
 
 
 def get_train_test_loaders(path, split_rate, batch_size):
@@ -68,3 +78,4 @@ def get_train_test_loaders(path, split_rate, batch_size):
     train_data_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
     val_data_loader = DataLoader(val_set, batch_size=batch_size, shuffle=True)
     return train_data_loader, val_data_loader
+
