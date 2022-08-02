@@ -3,10 +3,10 @@ from MainProcess import *
 from torch import nn
 from Lookahead import *
 from Test import test
-batch_size = 16
+batch_size = 8
 epochs = 200
-path_to_data = "tim's_data"
-path_to_test_data = 'test_data'
+path_to_data = "tim's_data/Train"
+path_to_test_data = "tim's_data/Test"
 path_to_weights = 'weights'
 train_test_rate = 0.3
 lr = 1e-2
@@ -22,16 +22,16 @@ model = UNet()
 loss = nn.MSELoss(reduction='sum')  # nn.L1Loss()
 # optimizer
 optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=1e-2, betas=(0.8, 0.980), eps=1e-08)  # the parameters are default for now
-optimizer = Lookahead(optimizer)
+# optimizer = Lookahead(optimizer)  # doesnt work with gpu for now
 mask = True
-mask_rate = 0.2
+mask_rate = 0.87
 
 
 def main():
-    # main_process(model, path_to_data, loss, optimizer, epochs, path_to_weights, batch_size, train_test_rate, mask, rate)
+    # main_process(model, path_to_data, loss, optimizer, epochs, path_to_weights, batch_size, train_test_rate, mask, mask_rate)
     # test
     model.load(f'{path_to_weights}/encoder', f'{path_to_weights}/decoder')
-    test(model, path_to_test_data, False, 0)  # no mask for now
+    test(model, path_to_test_data, True, 0.87)  # no mask for now
 
 
 if __name__ == '__main__':
