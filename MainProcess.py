@@ -40,6 +40,7 @@ def train(model, train_loader, val_loader, loss, optimizer, epochs):
             tr_loss = loss(outputs, img.float())
             tr_loss.backward()
             optimizer.step()
+            tr_loss = tr_loss.cpu()
             running_loss += tr_loss.item()
             if batch_idx % 1 == 0:  # printing the loss every epoch
                 print('[%d, %5d] loss: %.3f' %
@@ -59,7 +60,8 @@ def train(model, train_loader, val_loader, loss, optimizer, epochs):
                 model = model.float()
                 outputs = model(img_noisy.float())
                 dev_loss = loss(outputs, img.float())
-                runing_dev_loss += dev_loss
+                dev_loss = dev_loss.cpu()
+                runing_dev_loss += dev_loss.item()
                 # if epoch % 20 == 0:
                 #     makedir(f'val_{epoch}')
                 #     dir = f'val_{epoch}'
@@ -73,7 +75,7 @@ def train(model, train_loader, val_loader, loss, optimizer, epochs):
 def evaluate(model, loader, train_or_test):
     makedir(train_or_test)
     model.eval()
-    model.to(device)
+    model = model.to(device)
     for data in loader:
         subject, img, img_noisy = data
         img_noisy = img_noisy.to(device)

@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from torchvision.utils import save_image
 import os
-Is_GPU_PC = False
+Is_GPU_PC = True
 
 
 def get_device():
@@ -33,8 +33,8 @@ def save_decoded_image(img, name):
 
 def output_learning_graph(tr_losses, dev_losses):
     # for better visualization
-    tr_losses_norm = [x if x < 7000 else 7000 for x in tr_losses]
-    dev_losses_norm = [x if x < 7000 else 7000 for x in dev_losses]
+    tr_losses_norm = tr_losses  # [x if x < 7000 else 7000 for x in tr_losses]
+    dev_losses_norm = dev_losses  # [x if x < 7000 else 7000 for x in dev_losses]
     iteration = np.arange(0, len(tr_losses_norm))
     plt.plot(iteration, tr_losses_norm, 'g-', iteration, dev_losses_norm, 'r-')
     plt.xlabel('iteration')

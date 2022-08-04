@@ -4,6 +4,7 @@ import torch.nn.functional as F
 
 layer1_filters = 8
 
+
 class DoubleConv(nn.Module):
     """(convolution => [BN] => ReLU) * 2"""
 

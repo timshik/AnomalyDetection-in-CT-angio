@@ -21,7 +21,7 @@ def data_prep(path):
             path_to_scan += f'/{os.listdir(path_to_scan)[0]}'
             image = cv2.imread(path_to_scan, 0)
             image = transform_img(image, 130)  # not sure if needed
-            image = cv2.resize(image, (128, 128))  #.astype(float)/255.0-0.5
+            # image = cv2.resize(image, (128, 128))  #.astype(float)/255.0-0.5
             scans.append([scan, image])
         except:
             continue
@@ -46,14 +46,29 @@ class GroupData:
 
 
 # we first subtract the image from 255 because we want the mask be in shape of a white squares
-def mask_image(img, rate):
-    img = 255-img
-    size = len(img)*len(img[0])
+def create_mask(img, rate):
+    img_reversed = 255 - img
+    size = len(img_reversed) * len(img_reversed[0])
     array = np.ones(size)
-    indices = np.random.choice(np.arange(size), int(size*rate), replace=False)
+    indices = np.random.choice(np.arange(size), int(size * rate), replace=False)
     array[indices] = 0
-    mask = np.reshape(array, (len(img), len(img[0])))
-    return 255 - img*mask.astype(int)
+    mask = np.reshape(array, (len(img_reversed), len(img_reversed[0])))
+    return mask
+
+
+def mask_image_pixels(img, rate):
+    mask = create_mask(img, rate)
+    return 255 - (255-img) * mask.astype(int)  # we want the mask to be white
+
+
+def mask_image_batches(img, rate, size=25):
+    mask = create_mask(img, rate)
+    for i in range(len(mask)):
+        for j in range(len(mask[0])):
+            if mask[i, j] == 0:
+                mask[i:i+size, j:j+size] = 2
+    mask[mask == 2] = 0
+    return 255 - (255-img) * mask.astype(int)
 
 
 class TwoGroupDataset(Dataset):
@@ -70,7 +85,7 @@ class TwoGroupDataset(Dataset):
         data = self.data[item][1]
         orig_image = data.reshape(1, data.shape[0], data.shape[1])
         if self.mask:
-            masked_image = mask_image(data, self.rate)
+            masked_image = mask_image_batches(data, self.rate)
             masked_image = masked_image.reshape(1, masked_image.shape[0], masked_image.shape[1])
         else:
             masked_image = orig_image

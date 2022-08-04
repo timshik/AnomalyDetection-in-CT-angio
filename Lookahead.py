@@ -1,7 +1,9 @@
 from collections import defaultdict
-
+from Utils import get_device
 import torch
 from torch.optim.optimizer import Optimizer
+
+device = get_device()
 
 
 class Lookahead(Optimizer):
