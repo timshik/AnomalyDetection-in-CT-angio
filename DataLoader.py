@@ -4,12 +4,7 @@ from sklearn.model_selection import train_test_split
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 import cv2
-
-
-def transform_img(image, thr):
-    # image[image > thr] = 255
-    # image[image <= thr] = 0
-    return image
+from Utils import *
 
 
 def data_prep(path):
@@ -20,7 +15,8 @@ def data_prep(path):
         try:
             path_to_scan += f'/{os.listdir(path_to_scan)[0]}'
             image = cv2.imread(path_to_scan, 0)
-            image = transform_img(image, 130)  # not sure if needed
+            # image = quantize_array(image)
+            # image = transform_img(image, 165)  # not sure if needed
             # image = cv2.resize(image, (128, 128))  #.astype(float)/255.0-0.5
             scans.append([scan, image])
         except:
@@ -61,7 +57,7 @@ def mask_image_pixels(img, rate):
     return 255 - (255-img) * mask.astype(int)  # we want the mask to be white
 
 
-def mask_image_batches(img, rate, size=25):
+def mask_image_batches(img, rate, size=50):
     mask = create_mask(img, rate)
     for i in range(len(mask)):
         for j in range(len(mask[0])):
@@ -86,6 +82,7 @@ class TwoGroupDataset(Dataset):
         orig_image = data.reshape(1, data.shape[0], data.shape[1])
         if self.mask:
             masked_image = mask_image_batches(data, self.rate)
+            # masked_image = mask_image_pixels(data, self.rate)
             masked_image = masked_image.reshape(1, masked_image.shape[0], masked_image.shape[1])
         else:
             masked_image = orig_image
