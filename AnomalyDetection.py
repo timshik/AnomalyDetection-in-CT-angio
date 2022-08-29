@@ -4,9 +4,9 @@ import pandas as pd
 model = UNet()
 path_to_test_data = "tim's_data/Test"
 path_to_labels = "tim's_data/labels.csv"
-path_to_weights = '2.3/weights'
+path_to_weights = '3.1/weights'
 thr = 20
-size = 50
+size = 25
 # 1 for clot 0 for healthy
 labels = pd.read_csv(path_to_labels, names=['ID', 'condition'], dtype={'condition': 'Int64'})
 

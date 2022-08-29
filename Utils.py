@@ -41,8 +41,8 @@ def save_decoded_image(img, name):
 
 def output_learning_graph(tr_losses, dev_losses):
     # for better visualization
-    tr_losses_norm = [x if x < 150000000 else 150000000 for x in tr_losses]
-    dev_losses_norm = [x if x < 150000000 else 150000000 for x in dev_losses]
+    tr_losses_norm = [x if x < 1500000000 else 1500000000 for x in tr_losses]
+    dev_losses_norm = [x if x < 1500000000 else 1500000000 for x in dev_losses]
     iteration = np.arange(0, len(tr_losses_norm))
     plt.plot(iteration, tr_losses_norm, 'g-', iteration, dev_losses_norm, 'r-')
     plt.xlabel('iteration')

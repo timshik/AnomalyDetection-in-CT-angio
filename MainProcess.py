@@ -92,7 +92,8 @@ def main_process(model, path_to_data, loss, optimizer, epochs, path_to_weights, 
     output_learning_graph(tr_losses, val_losses)
     makedir(path_to_weights)
     makedir(f'{path_to_weights}')
-    model.save(f'{path_to_weights}/encoder', f'{path_to_weights}/decoder')
+    model.save(f'{path_to_weights}/encoder', f'{path_to_weights}/decoder')  # unet
+    # model.save(f'{path_to_weights}/weights')
     evaluate(model, train_loader, 'train')
     print('------------------------------------------')
     evaluate(model, val_loader, 'val')

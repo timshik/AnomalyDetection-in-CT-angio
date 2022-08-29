@@ -53,10 +53,11 @@ def calc_score(model, img, kernel_size, stride, subject):
             masked = masked.to(device)
             generated = model(masked.float()).cpu().detach().numpy().squeeze()
             total_generated[i:i + h_kernel, j:j + w_kernel] = generated[i:i + h_kernel, j:j + w_kernel] ###
-            original_square_mean = np.mean(img[i:i + h_kernel, j:j + w_kernel])
-            generated_square_mean = np.mean(generated[i:i + h_kernel, j: j + w_kernel])
-            diff.append(([i, j], (abs(original_square_mean - generated_square_mean))))  # /(225 - original_square_mean))))
-
+            # original_square_mean = np.mean(img[i:i + h_kernel, j:j + w_kernel])
+            # generated_square_mean = np.mean(generated[i:i + h_kernel, j: j + w_kernel])
+            # diff.append(([i, j], (abs(original_square_mean - generated_square_mean))/(230 - original_square_mean)))
+            normalize = np.sum(img[i:i + h_kernel, j:j + w_kernel]**2)
+            diff.append(((i, j), (np.sum((img[i:i + h_kernel, j:j + w_kernel]-generated[i:i + h_kernel, j: j + w_kernel])**2))/normalize))
             # save_batch(f'{i},{j}', img, masked.cpu().detach().numpy().squeeze(), generated)
             j += stride
 
@@ -67,7 +68,7 @@ def calc_score(model, img, kernel_size, stride, subject):
     return diff, max(np.array(diff)[:, 1])
 
 
-def get_predictions_and_accuracy(model, path, labels, thr=20, size=50, stride=50):
+def get_predictions_and_accuracy(model, path, labels, thr=20, size=25, stride=25):
     scores = []
     makedir('diffs_heatmaps')
     ordered_labels = []
@@ -75,9 +76,9 @@ def get_predictions_and_accuracy(model, path, labels, thr=20, size=50, stride=50
         ordered_labels.append(labels[labels['ID'] == int(subject)]['condition'].to_numpy()[0])
         path_to_scan = f'{path}/{subject}/SAG'
         img = cv2.imread(f'{path_to_scan}/{os.listdir(path_to_scan)[0]}', 0)
-        # img = quantize_array(img)
-        img = transform_img(img, 160)
-        diff, score = calc_score(model, img, size, stride, subject)
+        quan_img = quantize_array(img)
+        # img = transform_img(img, 160)
+        diff, score = calc_score(model, quan_img, size, stride, subject)
         # draw heat map of the differences
         diff_to_img(img, diff, size, f'diffs_heatmaps/{subject}.png')
         predicted = int(score > thr)

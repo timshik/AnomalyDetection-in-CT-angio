@@ -15,7 +15,7 @@ def data_prep(path):
         try:
             path_to_scan += f'/{os.listdir(path_to_scan)[0]}'
             image = cv2.imread(path_to_scan, 0)
-            # image = quantize_array(image)
+            image = quantize_array(image)
             # image = transform_img(image, 165)  # not sure if needed
             # image = cv2.resize(image, (128, 128))  #.astype(float)/255.0-0.5
             scans.append([scan, image])
